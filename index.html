@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Gym Tracker Pro</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --bg:#f4f6f8;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --border:#dbe2ea;
+      --primary:#4f8ef7;
+      --primary-soft:#dbeafe;
+      --danger:#e85d5d;
+      --success:#16a34a;
+      --shadow:0 4px 14px rgba(0,0,0,.06);
+      --radius:14px;
+    }
+
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial,sans-serif;
+    }
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background:#fff;
+      border-bottom:1px solid var(--border);
+      padding:14px 12px;
+      text-align:center;
+      font-size:22px;
+      font-weight:700;
+    }
+
+    .container{
+      max-width:1150px;
+      margin:auto;
+      padding:10px;
+      padding-bottom:90px;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:14px;
+      margin-bottom:12px;
+    }
+
+    .section{display:none}
+    .section.active{display:block}
+
+    h2,h3,h4{margin:0 0 12px}
+    p{margin:8px 0}
+    .muted{color:var(--muted);font-size:14px}
+    .small{font-size:12px;color:var(--muted)}
+
+    label{
+      display:block;
+      margin-top:12px;
+      margin-bottom:6px;
+      font-weight:700;
+      font-size:14px;
+    }
+
+    input,textarea,select,button{
+      width:100%;
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px;
+      font-size:14px;
+      background:#fff;
+    }
+
+    textarea{resize:vertical}
+    button{
+      border:none;
+      background:var(--primary);
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .btn-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:14px;
+    }
+
+    .btn-row button{
+      width:auto;
+      min-width:120px;
+      flex:1;
+    }
+
+    .btn-secondary{background:#94a3b8}
+    .btn-danger{background:var(--danger)}
+    .btn-success{background:var(--success)}
+
+    .row{display:grid;gap:10px}
+    .two-col{grid-template-columns:1fr 1fr}
+    .three-col{grid-template-columns:repeat(3,1fr)}
+    .four-col{grid-template-columns:repeat(4,1fr)}
+
+    .dashboard-grid{
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:10px;
+    }
+
+    .mini-card{
+      background:#f8fafc;
+      border:1px solid #e7edf3;
+      border-radius:12px;
+      padding:12px;
+    }
+
+    .tabs-desktop{
+      display:none;
+      gap:8px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+
+    .tabs-desktop button{
+      width:auto;
+      background:var(--primary-soft);
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:10px;
+    }
+
+    .tabs-desktop button.active{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    .bottom-nav{
+      position:fixed;
+      left:0;
+      right:0;
+      bottom:0;
+      background:#fff;
+      border-top:1px solid var(--border);
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      z-index:30;
+    }
+
+    .bottom-nav button{
+      background:#fff;
+      color:var(--text);
+      border-radius:0;
+      padding:10px 6px;
+      font-size:12px;
+      border:none;
+    }
+
+    .bottom-nav button.active{
+      color:var(--primary);
+      font-weight:700;
+    }
+
+    .calendar-controls{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:10px;
+    }
+
+    .calendar-controls button{
+      width:auto;
+      padding:10px 12px;
+    }
+
+    .calendar-grid{
+      display:grid;
+      grid-template-columns:repeat(7,1fr);
+      gap:6px;
+    }
+
+    .calendar-header{
+      background:#eef4fb;
+      border-radius:10px;
+      text-align:center;
+      padding:8px;
+      font-weight:700;
+      font-size:12px;
+    }
+
+    .calendar-day{
+      min-height:92px;
+      background:#fafcff;
+      border:1px solid var(--border);
+      border-radius:10px;
+      padding:6px;
+      font-size:11px;
+      cursor:pointer;
+    }
+
+    .calendar-day.selected{outline:2px solid var(--primary)}
+    .date-num{font-weight:700;margin-bottom:6px}
+    .workout-label{
+      display:inline-block;
+      background:var(--primary-soft);
+      border-radius:8px;
+      padding:3px 6px;
+      margin-top:3px;
+      font-size:11px;
+    }
+    .note-dot,.history-dot{
+      margin-top:5px;
+      color:var(--muted);
+      font-size:11px;
+    }
+
+    .set-row{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr 86px;
+      gap:8px;
+      margin-bottom:8px;
+    }
+
+    .set-row button{
+      background:var(--danger);
+      padding:10px 6px;
+    }
+
+    .exercise-card,.history-card{
+      border:1px solid #e5ebf1;
+      border-radius:12px;
+      background:#fbfcfe;
+      padding:12px;
+      margin-top:10px;
+    }
+
+    .exercise-card ul,.history-card ul{
+      margin:8px 0;
+      padding-left:18px;
+    }
+
+    .pill{
+      display:inline-block;
+      background:var(--primary-soft);
+      color:var(--text);
+      border-radius:999px;
+      padding:5px 10px;
+      font-size:12px;
+      margin-right:6px;
+      margin-top:6px;
+    }
+
+    .stats-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+    }
+
+    .stat-box{
+      background:#f8fafc;
+      border:1px solid #e7edf3;
+      border-radius:12px;
+      padding:12px;
+      text-align:center;
+    }
+
+    .divider{
+      border:none;
+      border-top:1px solid #e5e7eb;
+      margin:18px 0;
+    }
+
+    @media (min-width: 900px){
+      .tabs-desktop{display:flex}
+      .bottom-nav{display:none}
+    }
+
+    @media (max-width: 899px){
+      .calendar-grid{grid-template-columns:repeat(2,1fr)}
+      .calendar-header{display:none}
+      .two-col,.three-col,.four-col,.set-row,.dashboard-grid,.stats-grid{
+        grid-template-columns:1fr;
+      }
+      header{font-size:20px}
+      .container{padding:8px;padding-bottom:88px}
+      .card{padding:12px;border-radius:12px}
+      .btn-row button{min-width:unset}
+      canvas{max-height:280px}
+    }
+  </style>
+</head>
+<body>
+  <header>Gym Tracker Pro</header>
+
+  <div class="container">
+    <div class="tabs-desktop">
+      <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+      <button class="tab-btn" data-tab="program">Program</button>
+      <button class="tab-btn" data-tab="calendar">Calendar</button>
+      <button class="tab-btn" data-tab="workout">Workout</button>
+      <button class="tab-btn" data-tab="history">History</button>
+      <button class="tab-btn" data-tab="progress">Progress</button>
+      <button class="tab-btn" data-tab="nutrition">Nutrition</button>
+      <button class="tab-btn" data-tab="notes">Notes</button>
+      <button class="tab-btn" data-tab="backup">Backup</button>
+    </div>
+
+    <section id="dashboard" class="section active card">
+      <h2>Dashboard</h2>
+      <div class="dashboard-grid">
+        <div class="mini-card">
+          <h3>Today</h3>
+          <p id="todayDate"></p>
+          <p><strong>Workout:</strong> <span id="todayWorkout">-</span></p>
+        </div>
+        <div class="mini-card">
+          <h3>Protein</h3>
+          <p><span id="dashProtein">0</span> g</p>
+        </div>
+        <div class="mini-card">
+          <h3>Water</h3>
+          <p><span id="dashWater">0</span> L</p>
+        </div>
+        <div class="mini-card">
+          <h3>Today Note</h3>
+          <p id="dashNote">No note</p>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="stats-grid">
+        <div class="stat-box">
+          <h4>Total Workout Days</h4>
+          <p id="dashWorkoutDays">0</p>
+        </div>
+        <div class="stat-box">
+          <h4>Total Exercises Logged</h4>
+          <p id="dashExercises">0</p>
+        </div>
+        <div class="stat-box">
+          <h4>Total Sets Logged</h4>
+          <p id="dashSets">0</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="program" class="section card">
+      <h2>Program Manager</h2>
+      <p class="muted">Set your weekly routine. It repeats automatically in the calendar.</p>
+      <div class="row two-col">
+        <div><label>Monday</label><input id="prog-monday" placeholder="Legs"></div>
+        <div><label>Tuesday</label><input id="prog-tuesday" placeholder="Shoulders"></div>
+        <div><label>Wednesday</label><input id="prog-wednesday" placeholder="Back"></div>
+        <div><label>Thursday</label><input id="prog-thursday" placeholder="Chest"></div>
+        <div><label>Friday</label><input id="prog-friday" placeholder="Arms"></div>
+        <div><label>Saturday</label><input id="prog-saturday" placeholder="Rest / Legs"></div>
+        <div><label>Sunday</label><input id="prog-sunday" placeholder="Rest"></div>
+      </div>
+      <div class="btn-row">
+        <button id="saveProgramBtn">Save Program</button>
+      </div>
+      <p id="programMsg" class="muted"></p>
+    </section>
+
+    <section id="calendar" class="section card">
+      <h2>Calendar</h2>
+      <div class="calendar-controls">
+        <button id="prevMonthBtn">←</button>
+        <h3 id="calendarTitle"></h3>
+        <button id="nextMonthBtn">→</button>
+      </div>
+      <div id="calendarGrid" class="calendar-grid"></div>
+
+      <hr class="divider" />
+
+      <h3>Selected Day</h3>
+      <p id="selectedDateText">No date selected</p>
+
+      <label>Workout Override (only this date)</label>
+      <input id="dayWorkoutInput" placeholder="Override workout for selected day">
+
+      <label>Daily Note</label>
+      <textarea id="dayNoteInput" rows="4" placeholder="Write note for selected day..."></textarea>
+
+      <div class="btn-row">
+        <button id="saveDayBtn">Save Day</button>
+      </div>
+      <p id="dayMsg" class="muted"></p>
+    </section>
+
+    <section id="workout" class="section card">
+      <h2>Workout Logger</h2>
+
+      <label>Date</label>
+      <input type="date" id="workoutDate">
+
+      <label>Exercise Name</label>
+      <input id="exerciseName" placeholder="Bench Press">
+
+      <div id="editModeBox" class="small" style="display:none; margin-top:8px; color: var(--success); font-weight:700;">
+        Editing existing exercise
+      </div>
+
+      <div id="setsContainer"></div>
+
+      <div class="btn-row">
+        <button id="addSetBtn">Add Set</button>
+        <button id="saveExerciseBtn">Save Exercise</button>
+        <button id="cancelEditBtn" class="btn-secondary" style="display:none;">Cancel Edit</button>
+      </div>
+
+      <h3 style="margin-top:20px;">Saved Exercises For Date</h3>
+      <div id="exerciseList"></div>
+      <p id="workoutMsg" class="muted"></p>
+    </section>
+
+    <section id="history" class="section card">
+      <h2>Workout History</h2>
+
+      <label>Search by Date</label>
+      <input type="date" id="historyDate">
+
+      <label>Or Search by Exercise Name</label>
+      <input id="historyExerciseSearch" placeholder="e.g. Squat">
+
+      <div class="btn-row">
+        <button id="loadHistoryBtn">Load History</button>
+      </div>
+
+      <div id="historySummary" class="small" style="margin-top:10px;"></div>
+      <div id="historyList"></div>
+    </section>
+
+    <section id="progress" class="section card">
+      <h2>Progress</h2>
+
+      <label>Select Exercise</label>
+      <select id="exerciseSelect">
+        <option value="">Choose exercise</option>
+      </select>
+
+      <canvas id="exerciseChart" height="110"></canvas>
+
+      <hr class="divider" />
+
+      <h3>Progressive Overload Tracker</h3>
+      <div id="overloadStats" class="small">Select an exercise to see overload stats.</div>
+      <canvas id="volumeChart" height="110"></canvas>
+    </section>
+
+    <section id="nutrition" class="section card">
+      <h2>Protein & Water</h2>
+
+      <label>Date</label>
+      <input type="date" id="nutritionDate">
+
+      <div class="row two-col">
+        <div>
+          <label>Protein (grams)</label>
+          <input type="number" id="proteinInput" placeholder="150">
+        </div>
+        <div>
+          <label>Water (liters)</label>
+          <input type="number" step="0.1" id="waterInput" placeholder="3.5">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button id="saveNutritionBtn">Save Nutrition</button>
+      </div>
+
+      <h3>Protein Graph</h3>
+      <canvas id="proteinChart" height="110"></canvas>
+
+      <h3>Water Graph</h3>
+      <canvas id="waterChart" height="110"></canvas>
+
+      <p id="nutritionMsg" class="muted"></p>
+    </section>
+
+    <section id="notes" class="section card">
+      <h2>Global Notes</h2>
+      <textarea id="globalNotesInput" rows="10" placeholder="Write notes here..."></textarea>
+      <div class="btn-row">
+        <button id="saveGlobalNotesBtn">Save Notes</button>
+      </div>
+      <p id="globalNotesMsg" class="muted"></p>
+    </section>
+
+    <section id="backup" class="section card">
+      <h2>Backup / Transfer Data</h2>
+      <p class="muted">Use export/import to move your data to another phone or device.</p>
+
+      <div class="btn-row">
+        <button id="exportBtn" class="btn-success">Export Backup File</button>
+        <button id="importTriggerBtn" class="btn-secondary">Import Backup File</button>
+        <button id="clearAllDataBtn" class="btn-danger">Clear All Data</button>
+      </div>
+
+      <input type="file" id="importFileInput" accept=".json" style="display:none;">
+      <p id="backupMsg" class="muted"></p>
+    </section>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="tab-btn active" data-tab="dashboard">Home</button>
+    <button class="tab-btn" data-tab="calendar">Calendar</button>
+    <button class="tab-btn" data-tab="workout">Workout</button>
+    <button class="tab-btn" data-tab="progress">Progress</button>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "gymTrackerData_v2";
+
+    const defaultData = {
+      program: {
+        monday: "", tuesday: "", wednesday: "", thursday: "", friday: "", saturday: "", sunday: ""
+      },
+      dayOverrides: {},
+      workouts: {},
+      nutrition: {},
+      globalNotes: ""
+    };
+
+    function clone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
+    function loadData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return clone(defaultData);
+        const parsed = JSON.parse(raw);
+        return {
+          program: {...defaultData.program, ...(parsed.program || {})},
+          dayOverrides: parsed.dayOverrides || {},
+          workouts: parsed.workouts || {},
+          nutrition: parsed.nutrition || {},
+          globalNotes: parsed.globalNotes || ""
+        };
+      } catch {
+        return clone(defaultData);
+      }
+    }
+
+    function saveData() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    let data = loadData();
+    let currentDate = new Date();
+    let selectedDate = null;
+    let editExerciseId = null;
+    let exerciseChart = null;
+    let proteinChart = null;
+    let waterChart = null;
+    let volumeChart = null;
+
+    function formatDate(date) {
+      return date.toISOString().split("T")[0];
+    }
+
+    function prettyDate(dateStr) {
+      return new Date(dateStr + "T00:00:00").toDateString();
+    }
+
+    function getDayName(dateStr) {
+      const d = new Date(dateStr + "T00:00:00");
+      return ["sunday","monday","tuesday","wednesday","thursday","friday","saturday"][d.getDay()];
+    }
+
+    function getPlannedWorkout(dateStr) {
+      const override = data.dayOverrides[dateStr];
+      if (override && override.workoutOverride) return override.workoutOverride;
+      return data.program[getDayName(dateStr)] || "";
+    }
+
+    function setMsg(id, msg, color="#6b7280") {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = msg;
+      el.style.color = color;
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.tab === tabName);
+      });
+      document.querySelectorAll(".section").forEach(sec => {
+        sec.classList.toggle("active", sec.id === tabName);
+      });
+    }
+
+    document.querySelectorAll(".tab-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        if (btn.dataset.tab) switchTab(btn.dataset.tab);
+      });
+    });
+
+    function initProgramInputs() {
+      document.getElementById("prog-monday").value = data.program.monday || "";
+      document.getElementById("prog-tuesday").value = data.program.tuesday || "";
+      document.getElementById("prog-wednesday").value = data.program.wednesday || "";
+      document.getElementById("prog-thursday").value = data.program.thursday || "";
+      document.getElementById("prog-friday").value = data.program.friday || "";
+      document.getElementById("prog-saturday").value = data.program.saturday || "";
+      document.getElementById("prog-sunday").value = data.program.sunday || "";
+    }
+
+    document.getElementById("saveProgramBtn").addEventListener("click", () => {
+      data.program = {
+        monday: document.getElementById("prog-monday").value.trim(),
+        tuesday: document.getElementById("prog-tuesday").value.trim(),
+        wednesday: document.getElementById("prog-wednesday").value.trim(),
+        thursday: document.getElementById("prog-thursday").value.trim(),
+        friday: document.getElementById("prog-friday").value.trim(),
+        saturday: document.getElementById("prog-saturday").value.trim(),
+        sunday: document.getElementById("prog-sunday").value.trim()
+      };
+      saveData();
+      renderCalendar();
+      loadDashboard();
+      setMsg("programMsg","Program saved.");
+    });
+
+    function renderCalendar() {
+      const grid = document.getElementById("calendarGrid");
+      const title = document.getElementById("calendarTitle");
+      grid.innerHTML = "";
+
+      const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      title.textContent = `${monthNames[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+
+      ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(day => {
+        const el = document.createElement("div");
+        el.className = "calendar-header";
+        el.textContent = day;
+        grid.appendChild(el);
+      });
+
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
+      const firstDay = new Date(year, month, 1).getDay();
+      const totalDays = new Date(year, month + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        empty.className = "calendar-day";
+        empty.style.visibility = "hidden";
+        grid.appendChild(empty);
+      }
+
+      for (let d = 1; d <= totalDays; d++) {
+        const dateStr = formatDate(new Date(year, month, d));
+        const override = data.dayOverrides[dateStr] || {};
+        const workout = getPlannedWorkout(dateStr);
+        const hasWorkoutHistory = (data.workouts[dateStr] || []).length > 0;
+
+        const cell = document.createElement("div");
+        cell.className = "calendar-day" + (selectedDate === dateStr ? " selected" : "");
+        cell.innerHTML = `
+          <div class="date-num">${d}</div>
+          ${workout ? `<div class="workout-label">${workout}</div>` : ""}
+          ${override.note ? `<div class="note-dot">📝 Note</div>` : ""}
+          ${hasWorkoutHistory ? `<div class="history-dot">🏋️ Logged</div>` : ""}
+        `;
+
+        cell.addEventListener("click", () => {
+          selectedDate = dateStr;
+          document.getElementById("selectedDateText").textContent = prettyDate(dateStr);
+          document.getElementById("dayWorkoutInput").value = override.workoutOverride || workout || "";
+          document.getElementById("dayNoteInput").value = override.note || "";
+          renderCalendar();
+        });
+
+        grid.appendChild(cell);
+      }
+    }
+
+    document.getElementById("prevMonthBtn").addEventListener("click", () => {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendar();
+    });
+
+    document.getElementById("nextMonthBtn").addEventListener("click", () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendar();
+    });
+
+    document.getElementById("saveDayBtn").addEventListener("click", () => {
+      if (!selectedDate) {
+        setMsg("dayMsg","Please select a date first.","crimson");
+        return;
+      }
+
+      data.dayOverrides[selectedDate] = {
+        workoutOverride: document.getElementById("dayWorkoutInput").value.trim(),
+        note: document.getElementById("dayNoteInput").value.trim()
+      };
+
+      saveData();
+      renderCalendar();
+      loadDashboard();
+      setMsg("dayMsg","Day saved.");
+    });
+
+    const setsContainer = document.getElementById("setsContainer");
+
+    function addSetRow(set = {reps:"", weight:"", rpe:""}) {
+      const row = document.createElement("div");
+      row.className = "set-row";
+      row.innerHTML = `
+        <input type="number" class="set-reps" placeholder="Reps" value="${set.reps}">
+        <input type="number" class="set-weight" placeholder="Weight" value="${set.weight}">
+        <input type="number" class="set-rpe" placeholder="RPE /10" min="1" max="10" value="${set.rpe}">
+        <button type="button">Remove</button>
+      `;
+      row.querySelector("button").addEventListener("click", () => row.remove());
+      setsContainer.appendChild(row);
+    }
+
+    function resetWorkoutForm() {
+      editExerciseId = null;
+      document.getElementById("exerciseName").value = "";
+      setsContainer.innerHTML = "";
+      addSetRow();
+      document.getElementById("editModeBox").style.display = "none";
+      document.getElementById("cancelEditBtn").style.display = "none";
+      document.getElementById("saveExerciseBtn").textContent = "Save Exercise";
+    }
+
+    document.getElementById("addSetBtn").addEventListener("click", () => addSetRow());
+
+    document.getElementById("cancelEditBtn").addEventListener("click", () => {
+      resetWorkoutForm();
+      setMsg("workoutMsg","Edit cancelled.");
+    });
+
+    document.getElementById("saveExerciseBtn").addEventListener("click", () => {
+      const date = document.getElementById("workoutDate").value;
+      const name = document.getElementById("exerciseName").value.trim();
+
+      if (!date || !name) {
+        setMsg("workoutMsg","Please enter date and exercise name.","crimson");
+        return;
+      }
+
+      const rows = [...document.querySelectorAll(".set-row")];
+      const sets = rows.map(row => ({
+        reps: Number(row.querySelector(".set-reps").value || 0),
+        weight: Number(row.querySelector(".set-weight").value || 0),
+        rpe: Number(row.querySelector(".set-rpe").value || 0)
+      })).filter(s => s.reps || s.weight || s.rpe);
+
+      if (!sets.length) {
+        setMsg("workoutMsg","Please add at least one set.","crimson");
+        return;
+      }
+
+      if (!data.workouts[date]) data.workouts[date] = [];
+
+      if (editExerciseId) {
+        const idx = data.workouts[date].findIndex(x => x.id === editExerciseId);
+        if (idx !== -1) {
+          data.workouts[date][idx] = { ...data.workouts[date][idx], exerciseName:name, sets };
+        } else {
+          data.workouts[date].push({ id: Date.now(), exerciseName:name, sets, createdAt: new Date().toISOString() });
+        }
+        setMsg("workoutMsg","Exercise updated.");
+      } else {
+        data.workouts[date].push({
+          id: Date.now(),
+          exerciseName: name,
+          sets,
+          createdAt: new Date().toISOString()
+        });
+        setMsg("workoutMsg","Exercise saved.");
+      }
+
+      saveData();
+      resetWorkoutForm();
+      loadExerciseList();
+      loadExerciseOptions();
+      renderCalendar();
+      loadDashboard();
+      renderHistory();
+    });
+
+    function loadExerciseList() {
+      const date = document.getElementById("workoutDate").value;
+      const list = document.getElementById("exerciseList");
+      list.innerHTML = "";
+
+      const items = data.workouts[date] || [];
+      if (!items.length) {
+        list.innerHTML = `<p class="muted">No exercises saved for this date.</p>`;
+        return;
+      }
+
+      items.forEach(item => {
+        const volume = item.sets.reduce((sum,s)=>sum + (Number(s.reps)||0)*(Number(s.weight)||0),0);
+        const maxWeight = Math.max(...item.sets.map(s => Number(s.weight)||0));
+
+        const card = document.createElement("div");
+        card.className = "exercise-card";
+
+        let html = `<h4>${item.exerciseName}</h4>`;
+        html += `<span class="pill">Max Weight: ${maxWeight}</span>`;
+        html += `<span class="pill">Volume: ${volume}</span>`;
+        html += `<ul>`;
+        item.sets.forEach((set,i) => {
+          html += `<li>Set ${i+1}: ${set.reps} reps, ${set.weight} weight, RPE ${set.rpe}/10</li>`;
+        });
+        html += `</ul>
+          <div class="btn-row">
+            <button class="edit-btn">Edit</button>
+            <button class="btn-danger delete-btn">Delete</button>
+          </div>
+        `;
+
+        card.innerHTML = html;
+
+        card.querySelector(".edit-btn").addEventListener("click", () => {
+          editExerciseId = item.id;
+          document.getElementById("exerciseName").value = item.exerciseName;
+          setsContainer.innerHTML = "";
+          item.sets.forEach(set => addSetRow(set));
+          document.getElementById("editModeBox").style.display = "block";
+          document.getElementById("cancelEditBtn").style.display = "inline-block";
+          document.getElementById("saveExerciseBtn").textContent = "Update Exercise";
+          switchTab("workout");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        });
+
+        card.querySelector(".delete-btn").addEventListener("click", () => {
+          const yes = confirm("Delete this exercise?");
+          if (!yes) return;
+          data.workouts[date] = data.workouts[date].filter(x => x.id !== item.id);
+          saveData();
+          loadExerciseList();
+          loadExerciseOptions();
+          renderCalendar();
+          loadDashboard();
+          renderHistory();
+          setMsg("workoutMsg","Exercise deleted.");
+        });
+
+        list.appendChild(card);
+      });
+    }
+
+    document.getElementById("workoutDate").addEventListener("change", () => {
+      resetWorkoutForm();
+      loadExerciseList();
+    });
+
+    function loadExerciseOptions() {
+      const select = document.getElementById("exerciseSelect");
+      const names = new Set();
+
+      Object.values(data.workouts).forEach(dayList => {
+        dayList.forEach(ex => names.add(ex.exerciseName));
+      });
+
+      const previous = select.value;
+      select.innerHTML = `<option value="">Choose exercise</option>`;
+      [...names].sort().forEach(name => {
+        const op = document.createElement("option");
+        op.value = name;
+        op.textContent = name;
+        select.appendChild(op);
+      });
+
+      if ([...names].includes(previous)) {
+        select.value = previous;
+        renderProgressCharts();
+      } else {
+        if (exerciseChart) exerciseChart.destroy();
+        if (volumeChart) volumeChart.destroy();
+        document.getElementById("overloadStats").textContent = "Select an exercise to see overload stats.";
+      }
+    }
+
+    function getExerciseEntries(exerciseName) {
+      const entries = [];
+      Object.keys(data.workouts).forEach(date => {
+        data.workouts[date].forEach(ex => {
+          if (ex.exerciseName === exerciseName) {
+            const maxWeight = Math.max(...ex.sets.map(s => Number(s.weight) || 0));
+            const totalVolume = ex.sets.reduce((sum,s) => sum + (Number(s.reps)||0)*(Number(s.weight)||0), 0);
+            const totalReps = ex.sets.reduce((sum,s) => sum + (Number(s.reps)||0), 0);
+            entries.push({ date, maxWeight, totalVolume, totalReps, sets: ex.sets.length });
+          }
+        });
+      });
+      entries.sort((a,b) => a.date.localeCompare(b.date));
+      return entries;
+    }
+
+    function renderProgressCharts() {
+      const name = document.getElementById("exerciseSelect").value;
+      if (!name) return;
+
+      const entries = getExerciseEntries(name);
+      const labels = entries.map(e => e.date);
+      const maxWeights = entries.map(e => e.maxWeight);
+      const volumes = entries.map(e => e.totalVolume);
+
+      if (exerciseChart) exerciseChart.destroy();
+      exerciseChart = new Chart(document.getElementById("exerciseChart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: `${name} Max Weight`,
+            data: maxWeights,
+            borderColor: "#4f8ef7",
+            backgroundColor: "rgba(79,142,247,.2)",
+            fill: true,
+            tension: .3
+          }]
+        },
+        options: { responsive:true }
+      });
+
+      if (volumeChart) volumeChart.destroy();
+      volumeChart = new Chart(document.getElementById("volumeChart"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: `${name} Total Volume`,
+            data: volumes,
+            backgroundColor: "#93c5fd"
+          }]
+        },
+        options: { responsive:true }
+      });
+
+      let statsText = "Not enough data.";
+      if (entries.length >= 2) {
+        const first = entries[0];
+        const last = entries[entries.length - 1];
+        const weightChange = last.maxWeight - first.maxWeight;
+        const volumeChange = last.totalVolume - first.totalVolume;
+
+        let overloadStatus = "Maintained";
+        if (weightChange > 0 || volumeChange > 0) overloadStatus = "Improving";
+        if (weightChange < 0 && volumeChange < 0) overloadStatus = "Declining";
+
+        statsText = `
+          Sessions: ${entries.length} | 
+          Start Max: ${first.maxWeight} | Current Max: ${last.maxWeight} | 
+          Change: ${weightChange >= 0 ? "+" : ""}${weightChange} | 
+          Start Volume: ${first.totalVolume} | Current Volume: ${last.totalVolume} | 
+          Volume Change: ${volumeChange >= 0 ? "+" : ""}${volumeChange} | 
+          Status: ${overloadStatus}
+        `;
+      }
+      document.getElementById("overloadStats").textContent = statsText;
+    }
+
+    document.getElementById("exerciseSelect").addEventListener("change", renderProgressCharts);
+
+    document.getElementById("saveNutritionBtn").addEventListener("click", () => {
+      const date = document.getElementById("nutritionDate").value;
+      if (!date) {
+        setMsg("nutritionMsg","Please select a date.","crimson");
+        return;
+      }
+
+      data.nutrition[date] = {
+        protein: Number(document.getElementById("proteinInput").value || 0),
+        water: Number(document.getElementById("waterInput").value || 0)
+      };
+
+      saveData();
+      renderNutritionCharts();
+      loadDashboard();
+      setMsg("nutritionMsg","Nutrition saved.");
+    });
+
+    function renderNutritionCharts() {
+      const entries = Object.keys(data.nutrition).sort().map(date => ({
+        date,
+        protein: data.nutrition[date].protein || 0,
+        water: data.nutrition[date].water || 0
+      }));
+
+      const labels = entries.map(e => e.date);
+      const proteinVals = entries.map(e => e.protein);
+      const waterVals = entries.map(e => e.water);
+
+      if (proteinChart) proteinChart.destroy();
+      if (waterChart) waterChart.destroy();
+
+      proteinChart = new Chart(document.getElementById("proteinChart"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{
+            label: "Protein (g)",
+            data: proteinVals,
+            backgroundColor: "#7cb5ff"
+          }]
+        },
+        options: { responsive:true }
+      });
+
+      waterChart = new Chart(document.getElementById("waterChart"), {
+        type: "line",
+        data: {
+          labels,
+          datasets: [{
+            label: "Water (L)",
+            data: waterVals,
+            borderColor: "#4fc3f7",
+            backgroundColor: "rgba(79,195,247,.2)",
+            fill: true,
+            tension: .3
+          }]
+        },
+        options: { responsive:true }
+      });
+    }
+
+    document.getElementById("saveGlobalNotesBtn").addEventListener("click", () => {
+      data.globalNotes = document.getElementById("globalNotesInput").value;
+      saveData();
+      setMsg("globalNotesMsg","Notes saved.");
+    });
+
+    function renderHistory() {
+      const historyDate = document.getElementById("historyDate").value;
+      const searchExercise = document.getElementById("historyExerciseSearch").value.trim().toLowerCase();
+      const list = document.getElementById("historyList");
+      const summary = document.getElementById("historySummary");
+      list.innerHTML = "";
+
+      let results = [];
+
+      Object.keys(data.workouts).sort((a,b) => b.localeCompare(a)).forEach(date => {
+        const exercises = data.workouts[date] || [];
+        const filteredExercises = exercises.filter(ex => {
+          const matchDate = historyDate ? date === historyDate : true;
+          const matchExercise = searchExercise ? ex.exerciseName.toLowerCase().includes(searchExercise) : true;
+          return matchDate && matchExercise;
+        });
+
+        if (filteredExercises.length) {
+          results.push({ date, exercises: filteredExercises });
+        }
+      });
+
+      if (!results.length) {
+        summary.textContent = "No workout history found.";
+        list.innerHTML = "";
+        return;
+      }
+
+      let totalExerciseCount = 0;
+      let totalSetCount = 0;
+
+      results.forEach(day => {
+        totalExerciseCount += day.exercises.length;
+        day.exercises.forEach(ex => totalSetCount += ex.sets.length);
+
+        const dayCard = document.createElement("div");
+        dayCard.className = "history-card";
+
+        let html = `<h4>${prettyDate(day.date)}</h4>`;
+        html += `<p><strong>Planned:</strong> ${getPlannedWorkout(day.date) || "No workout assigned"}</p>`;
+
+        day.exercises.forEach(ex => {
+          const maxWeight = Math.max(...ex.sets.map(s => Number(s.weight)||0));
+          const volume = ex.sets.reduce((sum,s) => sum + (Number(s.reps)||0)*(Number(s.weight)||0), 0);
+          html += `
+            <div style="margin-top:10px;">
+              <strong>${ex.exerciseName}</strong><br>
+              <span class="pill">Max ${maxWeight}</span>
+              <span class="pill">Volume ${volume}</span>
+              <ul>
+                ${ex.sets.map((s,i) => `<li>Set ${i+1}: ${s.reps} reps, ${s.weight} weight, RPE ${s.rpe}/10</li>`).join("")}
+              </ul>
+            </div>
+          `;
+        });
+
+        dayCard.innerHTML = html;
+        list.appendChild(dayCard);
+      });
+
+      summary.textContent = `Days found: ${results.length} | Exercises: ${totalExerciseCount} | Sets: ${totalSetCount}`;
+    }
+
+    document.getElementById("loadHistoryBtn").addEventListener("click", renderHistory);
+
+    function loadDashboard() {
+      const today = formatDate(new Date());
+      document.getElementById("todayDate").textContent = prettyDate(today);
+      document.getElementById("todayWorkout").textContent = getPlannedWorkout(today) || "No workout assigned";
+      document.getElementById("dashNote").textContent = data.dayOverrides[today]?.note || "No note";
+      document.getElementById("dashProtein").textContent = data.nutrition[today]?.protein || 0;
+      document.getElementById("dashWater").textContent = data.nutrition[today]?.water || 0;
+
+      const workoutDays = Object.keys(data.workouts).filter(date => (data.workouts[date] || []).length > 0).length;
+      let exercises = 0;
+      let sets = 0;
+
+      Object.values(data.workouts).forEach(dayList => {
+        exercises += dayList.length;
+        dayList.forEach(ex => sets += ex.sets.length);
+      });
+
+      document.getElementById("dashWorkoutDays").textContent = workoutDays;
+      document.getElementById("dashExercises").textContent = exercises;
+      document.getElementById("dashSets").textContent = sets;
+    }
+
+    document.getElementById("exportBtn").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `gym-tracker-backup-${formatDate(new Date())}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      setMsg("backupMsg","Backup exported.");
+    });
+
+    document.getElementById("importTriggerBtn").addEventListener("click", () => {
+      document.getElementById("importFileInput").click();
+    });
+
+    document.getElementById("importFileInput").addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        try {
+          const imported = JSON.parse(event.target.result);
+          data = {
+            program: {...defaultData.program, ...(imported.program || {})},
+            dayOverrides: imported.dayOverrides || {},
+            workouts: imported.workouts || {},
+            nutrition: imported.nutrition || {},
+            globalNotes: imported.globalNotes || ""
+          };
+          saveData();
+          init();
+          setMsg("backupMsg","Backup imported successfully.","green");
+        } catch {
+          setMsg("backupMsg","Invalid backup file.","crimson");
+        }
+      };
+      reader.readAsText(file);
+    });
+
+    document.getElementById("clearAllDataBtn").addEventListener("click", () => {
+      const yes = confirm("Delete all saved data?");
+      if (!yes) return;
+      localStorage.removeItem(STORAGE_KEY);
+      location.reload();
+    });
+
+    function init() {
+      const today = formatDate(new Date());
+      document.getElementById("workoutDate").value = today;
+      document.getElementById("nutritionDate").value = today;
+      document.getElementById("historyDate").value = "";
+      document.getElementById("historyExerciseSearch").value = "";
+      document.getElementById("globalNotesInput").value = data.globalNotes || "";
+
+      initProgramInputs();
+      resetWorkoutForm();
+      renderCalendar();
+      loadExerciseList();
+      loadExerciseOptions();
+      renderNutritionCharts();
+      loadDashboard();
+      renderHistory();
+    }
+
+    init();
+  </script>
+</body>
+</html>
